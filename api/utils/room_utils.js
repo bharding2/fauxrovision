@@ -1,13 +1,7 @@
 module.exports = {
   findRoomWithId: (id, rooms) => {
-    let roomFound;
-
-    rooms.forEach(room => {
-      if(room.roomId === id) {
-        roomFound = room;
-      }
+    return rooms.find((room) => {
+      return room.roomId === id;
     });
-
-    return roomFound;
   },
 };

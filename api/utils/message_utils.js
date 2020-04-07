@@ -1,8 +1,8 @@
 module.exports = {
   broadcast: (message, users, socket) => {
     users.forEach((user) => {
-      if (user.ws != socket) {
-        user.ws.send(JSON.stringify(message));
+      if (user.socket != socket) {
+        user.socket.send(JSON.stringify(message));
       }
     });
   },

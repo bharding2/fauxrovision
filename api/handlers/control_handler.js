@@ -3,12 +3,12 @@ const roomUtils = require('../utils/room_utils');
 
 module.exports = (message, socket, rooms) => {
   if (message.action === 'assign') {
-    assignControlAction(message, socket, rooms);
+    assignControl(message, socket, rooms);
   }
-}
+};
 
-const assignControlAction = (message, socket, rooms) => {
-  let room = roomUtils.findRoomWithId(message.roomId, rooms);
+const assignControl = (message, socket, rooms) => {
+  const room = roomUtils.findRoomWithId(message.roomId, rooms);
 
   if (room) {
     room.users.forEach((user) => {
@@ -23,7 +23,7 @@ const assignControlAction = (message, socket, rooms) => {
       } else if (message.username == user.username) {
         user.haveControl = false;
 
-        user.ws.send(JSON.stringify({
+        user.socket.send(JSON.stringify({
           event: 'control', 
           action: 'youhavecontrol', 
           youHaveControl: user.haveControl,

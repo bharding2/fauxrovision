@@ -2,13 +2,11 @@ const messageUtils = require('../utils/message_utils');
 const roomUtils = require('../utils/room_utils');
 
 module.exports = (message, socket, rooms) => {
-  let action = message.action;
-
-  if (action === 'create') {
+  if (message.action === 'create') {
     createRoom(message, socket, rooms);
-  } else if (action === 'join') {
+  } else if (message.action === 'join') {
     joinRoom(message, socket, rooms);
-  } else if (action === 'leave') {
+  } else if (message.action === 'leave') {
     leaveRoom(message, socket, rooms);
   }
 };
@@ -18,7 +16,7 @@ const createRoom = (message, socket, rooms) => {
     roomId: message.roomId, 
     users: [{
       username: message.username, 
-      ws: socket, 
+      socket: socket, 
       haveControl: true,
     }],
   });
@@ -31,12 +29,12 @@ const createRoom = (message, socket, rooms) => {
 };
 
 const joinRoom = (message, socket, rooms) => {
-  let room = roomUtils.findRoomWithId(message.roomId, rooms);
+  const room = roomUtils.findRoomWithId(message.roomId, rooms);
 
   if (room) {
     room.users.push({
       username: message.username, 
-      ws: socket, 
+      socket: socket, 
       haveControl: false,
     });
 
@@ -46,14 +44,11 @@ const joinRoom = (message, socket, rooms) => {
   }
 };
 
-const leaveRoom = (message, socket) => {
-  let users;
-
+const leaveRoom = (message, socket, rooms) => {
   rooms.forEach(room => {
-    room.users.forEach((user, index, object) => {
-      if (user.ws == socket) {
-        users = room.users;
-        object.splice(index, 1);
+    room.users.forEach((user, index, arr) => {
+      if (user.socket == socket) {
+        arr.splice(index, 1);
       } else {
         messageUtils.broadcast({
           event: 'online',
@@ -61,8 +56,8 @@ const leaveRoom = (message, socket) => {
           username: message.username
         }, room.users, socket);
       }
-    })
-  })
+    });
+  });
 };
 
 const notifyUsers = (message, socket, users) => {
@@ -73,13 +68,13 @@ const notifyUsers = (message, socket, users) => {
       username: message.username, 
       haveControl: false
     }
-  }, users, socket)
+  }, users, socket);
 
-  const usersPyload = [];
+  const usersPayload = [];
 
   users.forEach((user) => {
-    if (user.ws != socket) {
-      usersPyload.push({
+    if (user.socket != socket) {
+      usersPayload.push({
         username: user.username, 
         haveControl: user.haveControl,
       });
@@ -90,6 +85,6 @@ const notifyUsers = (message, socket, users) => {
     event: 'online',
     action: 'alreadyjoined',
     haveControl: false,
-    users: usersPyload,
+    users: usersPayload,
   }, socket);
 }
