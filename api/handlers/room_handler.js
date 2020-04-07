@@ -1,84 +1,84 @@
 const messageUtils = require('../utils/message_utils');
 const roomUtils = require('../utils/room_utils');
 
-module.exports = (data, ws, rooms) => {
-  let action = data.action;
+module.exports = (message, socket, rooms) => {
+  let action = message.action;
 
   if (action === 'create') {
-    createRoom(data, ws, rooms);
+    createRoom(message, socket, rooms);
   } else if (action === 'join') {
-    joinRoom(data, ws, rooms);
+    joinRoom(message, socket, rooms);
   } else if (action === 'leave') {
-    leaveRoom(data, ws, rooms);
+    leaveRoom(message, socket, rooms);
   }
 };
 
-const createRoom = (data, ws, rooms) => {
+const createRoom = (message, socket, rooms) => {
   rooms.push({
-    roomId: data.roomId, 
+    roomId: message.roomId, 
     users: [{
-      username: data.username, 
-      ws: ws, 
+      username: message.username, 
+      ws: socket, 
       haveControl: true,
     }],
   });
 
-  ws.send(JSON.stringify({
+  socket.send(JSON.stringify({
     event: 'control', 
     action: 'youhavecontrol', 
     youHaveControl: true,
   }));
 };
 
-const joinRoom = (data, ws, rooms) => {
-  let room = roomUtils.findRoomWithId(data.roomId, rooms);
+const joinRoom = (message, socket, rooms) => {
+  let room = roomUtils.findRoomWithId(message.roomId, rooms);
 
   if (room) {
     room.users.push({
-      username: data.username, 
-      ws: ws, 
+      username: message.username, 
+      ws: socket, 
       haveControl: false,
     });
 
-    notifyUsers(data, ws, room.users);
+    notifyUsers(message, socket, room.users);
   } else {
-    createRoom(data, ws);
+    createRoom(message, socket);
   }
 };
 
-const leaveRoom = (data, ws) => {
+const leaveRoom = (message, socket) => {
   let users;
 
   rooms.forEach(room => {
     room.users.forEach((user, index, object) => {
-      if (user.ws == ws) {
+      if (user.ws == socket) {
         users = room.users;
         object.splice(index, 1);
       } else {
         messageUtils.broadcast({
           event: 'online',
           action: 'left',
-          username: data.username
-        }, room.users, ws);
+          username: message.username
+        }, room.users, socket);
       }
     })
   })
 };
 
-const notifyUsers = (data, ws, users) => {
+const notifyUsers = (message, socket, users) => {
   messageUtils.broadcast({      
     event: 'online',
     action: 'joined',
     users: {
-      username: data.username, 
+      username: message.username, 
       haveControl: false
     }
-  }, users, ws)
+  }, users, socket)
 
   const usersPyload = [];
 
   users.forEach((user) => {
-    if (user.ws != ws) {
+    if (user.ws != socket) {
       usersPyload.push({
         username: user.username, 
         haveControl: user.haveControl,
@@ -91,5 +91,5 @@ const notifyUsers = (data, ws, users) => {
     action: 'alreadyjoined',
     haveControl: false,
     users: usersPyload,
-  }, ws);
+  }, socket);
 }

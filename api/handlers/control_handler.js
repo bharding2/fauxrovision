@@ -1,26 +1,26 @@
 const messageUtils = require('../utils/message_utils');
 const roomUtils = require('../utils/room_utils');
 
-module.exports = (data, ws, rooms) => {
-  if (data.action === 'assign') {
-    assignControlAction(data, ws, rooms);
+module.exports = (message, socket, rooms) => {
+  if (message.action === 'assign') {
+    assignControlAction(message, socket, rooms);
   }
 }
 
-const assignControlAction = (data, ws, rooms) => {
-  let room = roomUtils.findRoomWithId(data.roomId, rooms);
+const assignControlAction = (message, socket, rooms) => {
+  let room = roomUtils.findRoomWithId(message.roomId, rooms);
 
   if (room) {
     room.users.forEach((user) => {
-      if (user.username === data.toUsername) {
+      if (user.username === message.toUsername) {
           user.haveControl = true;
 
-          user.ws.send(JSON.stringify({
+          user.socket.send(JSON.stringify({
             event: 'control', 
             action: 'youhavecontrol', 
             youHaveControl: user.haveControl,
           }));
-      } else if (data.username == user.username) {
+      } else if (message.username == user.username) {
         user.haveControl = false;
 
         user.ws.send(JSON.stringify({
@@ -33,8 +33,8 @@ const assignControlAction = (data, ws, rooms) => {
       messageUtils.sendToUser({
         event: 'online',
         action: 'newcontroller',
-        username: data.toUsername,
-      }, ws);
+        username: message.toUsername,
+      }, socket);
     });
   }
 };

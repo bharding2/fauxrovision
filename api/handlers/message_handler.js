@@ -3,16 +3,16 @@ const syncHandler = require('./sync_handler');
 const chatHandler = require('./chat_handler');
 const controlHandler = require('./control_handler');
 
-module.exports = (data, ws, rooms) => {
-  let event = data.event;
+module.exports = (message, socket, rooms) => {
+  let event = message.event;
 
   if (event === 'room') {
-    roomHandler(data, ws, rooms);
+    roomHandler(message, socket, rooms);
   } else if (event === 'sync') {
-    syncHandler(data, ws, rooms);
+    syncHandler(message, socket, rooms);
   } else if (event === 'chat') {
-    chatHandler(data, ws, rooms);
+    chatHandler(message, socket, rooms);
   } else if (event === 'control') {
-    controlHandler(data, ws, rooms);
+    controlHandler(message, socket, rooms);
   }
 }

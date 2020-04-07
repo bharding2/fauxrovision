@@ -1,10 +1,10 @@
 const messageUtils = require('../utils/message_utils');
 const roomUtils = require('../utils/room_utils');
 
-module.exports = (data, ws, rooms) => {
-  let room = roomUtils.findRoomWithId(data.roomId, rooms);
+module.exports = (message, socket, rooms) => {
+  let room = roomUtils.findRoomWithId(message.roomId, rooms);
 
   if (room) {
-    messageUtils.broadcast(data, room.users, ws);
+    messageUtils.broadcast(message, room.users, socket);
   }
 };
